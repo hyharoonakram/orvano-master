@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+@theme {
+  --color-gold: #D4AF37;
+  --color-gold-hover: #F5D67B;
+  --color-black: #0A0A0A;
+  --color-background: #050505;
+  --color-white: #FFFFFF;
+
+  --font-sans: var(--font-montserrat);
+  --font-heading: var(--font-cinzel);
+  --font-signature: var(--font-signature);
+
+  --animate-shimmer: shimmer 4s infinite linear;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+:root {
+  --background: #050505;
+  --foreground: #FFFFFF;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+  text-rendering: optimizeSpeed;
+  -webkit-font-smoothing: antialiased;
+}
+
+img, svg {
+  transform: translateZ(0);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading), serif;
+}
+
+/* Custom Premium Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2a2a2a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #D4AF37;
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Hardware accelerated CSS marquee for smooth 60fps scrolling without JS */
+@keyframes marquee-slide {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+
+.animate-marquee-css {
+  display: flex;
+  width: max-content;
+  animation: marquee-slide 25s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-css:hover {
+  animation-play-state: paused;
+}
+
+/* Below-the-fold mobile performance optimization */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 500px;
+}
+
+@media (max-width: 768px) {
+  /* Disable heavy backdrop filters on mobile for fast scrolling */
+  .mobile-no-blur {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
