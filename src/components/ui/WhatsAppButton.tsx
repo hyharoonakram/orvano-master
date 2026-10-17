@@ -4,13 +4,33 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
+import { createClient } from "@/utils/supabase/client";
 
 export function WhatsAppButton() {
   const [mounted, setMounted] = useState(false);
+  const [whatsappNumber, setWhatsappNumber] = useState("923000138707");
   const pathname = usePathname();
 
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 800);
+    const fetchSettings = async () => {
+      try {
+        const supabase = createClient();
+        const { data } = await supabase
+          .from('store_settings')
+          .select('whatsapp_number')
+          .eq('id', 1)
+          .single();
+        if (data?.whatsapp_number) {
+          let clean = data.whatsapp_number.replace(/[^0-9]/g, '');
+          if (clean.startsWith('0')) clean = '92' + clean.slice(1);
+          if (clean) setWhatsappNumber(clean);
+        }
+      } catch {
+        // fallback
+      }
+    };
+    fetchSettings();
     return () => clearTimeout(timer);
   }, []);
 
@@ -19,7 +39,7 @@ export function WhatsAppButton() {
   }
 
   const isProductPage = pathname?.startsWith("/product/");
-  const whatsappUrl = "https://wa.me/923000138707?text=Hello%20ORVANO,%20I%20have%20an%20inquiry.";
+  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=Hello%20ORVANO,%20I%20have%20an%20inquiry.`;
 
   return (
     <div 

@@ -7,7 +7,7 @@ import { ProductGallery } from "@/components/product/ProductGallery";
 import Link from "next/link";
 import { ChevronRight, ShieldCheck, Truck, ShoppingCart, Banknote, Star } from "lucide-react";
 
-import { getProductById, getProducts } from "@/utils/supabase/queries";
+import { getProductById, getProducts, getStoreSettings } from "@/utils/supabase/queries";
 import { ProductClientActions } from "./ProductClientActions";
 
 export const revalidate = 60; // Instant Edge/CDN cache for 60 seconds
@@ -39,10 +39,17 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   }
 
   // Fetch category & fallback products in parallel for blazing-fast loading
-  const [categoryProducts, allProducts] = await Promise.all([
+  const [categoryProducts, allProducts, storeSettings] = await Promise.all([
     getProducts(product.category),
-    getProducts()
+    getProducts(),
+    getStoreSettings(),
   ]);
+
+  let whatsappNumber = (storeSettings?.whatsapp_number || "923000138707").replace(/[^0-9]/g, "");
+  if (whatsappNumber.startsWith("0")) {
+    whatsappNumber = "92" + whatsappNumber.slice(1);
+  }
+  if (!whatsappNumber) whatsappNumber = "923000138707";
 
   const relatedProducts = categoryProducts.filter((p) => p.id !== product.id);
   const allProductsFallback = relatedProducts.length > 0 ? relatedProducts : allProducts.filter((p) => p.id !== product.id);
@@ -158,7 +165,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                     Free Delivery <span className="text-white/60 font-normal">— Express Courier Across Pakistan</span>
                   </p>
                   <a
-                    href="https://wa.me/923306121404?text=Hi%2C%20I%20want%20to%20order%20or%20pay%20via%20JazzCash%2FEasyPaisa"
+                    href={`https://wa.me/${whatsappNumber}?text=Hi%2C%20I%20want%20to%20order%20or%20pay%20via%20JazzCash%2FEasyPaisa`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold underline mt-0.5 transition-colors"

@@ -677,7 +677,7 @@ function OrderTrackingCard({
             </div>
 
             <a
-              href={`https://wa.me/923000000000?text=Hi%20Orvano%20Team,%20I%20need%20an%20update%20for%20Order%20%23ORV-${shortId}`}
+              href={`https://wa.me/923000138707?text=Hi%20Orvano%20Team,%20I%20need%20an%20update%20for%20Order%20%23ORV-${shortId}`}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-[#25D366]/10 hover:bg-[#25D366]/20 border border-[#25D366]/30 text-[#25D366] px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all shrink-0"
