@@ -34,7 +34,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: any[] }) 
     display_order: "1"
   });
 
-  const categories = ["All", "Men's Watches", "Women's Watches", "Watches", "Pants", "T-Shirts", "Hoodies", "Accessories"];
+  const categories = ["All", "Men's Watches", "Women's Watches", "Women's Baggy", "Men's Baggy", "Watches", "Pants", "T-Shirts", "Hoodies", "Accessories"];
 
   const glowColorPresets = [
     { name: "Ocean Blue", color: "rgba(35, 95, 175, 0.55)", bg: "bg-blue-600" },
@@ -322,6 +322,8 @@ export function ProductsClient({ initialProducts }: { initialProducts: any[] }) 
                 >
                   <option value="Men's Watches">Men's Watches</option>
                   <option value="Women's Watches">Women's Watches</option>
+                  <option value="Women's Baggy">Women's Baggy</option>
+                  <option value="Men's Baggy">Men's Baggy</option>
                   <option value="Watches">General Watches</option>
                   <option value="Pants">Pants</option>
                   <option value="T-Shirts">T-Shirts</option>

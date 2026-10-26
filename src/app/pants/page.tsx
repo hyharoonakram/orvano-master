@@ -22,10 +22,16 @@ export default function PantsPage() {
       const { data } = await supabase
         .from("products")
         .select("*")
-        .eq("category", "Pants")
         .order("created_at", { ascending: false });
         
-      if (data) setProducts(data);
+      if (data) {
+        const pantsList = data.filter((p: any) => {
+          const c = (p.category || "").toLowerCase();
+          const n = (p.name || "").toLowerCase();
+          return c.includes("pant") || c.includes("baggy") || c.includes("trouser") || c.includes("cargo") || n.includes("pant") || n.includes("jean") || n.includes("baggy");
+        });
+        setProducts(pantsList.length > 0 ? pantsList : data);
+      }
       setLoading(false);
     };
     fetchProducts();

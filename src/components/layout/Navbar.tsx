@@ -13,25 +13,38 @@ import { CartDrawer } from "@/components/cart/CartDrawer";
 const ALL_NAV_CATEGORIES = [
   { label: "Men's Watches", href: "/shop?category=Men's Watches", catName: "Men's Watches" },
   { label: "Women's Watches", href: "/shop?category=Women's Watches", catName: "Women's Watches" },
-  { label: "Watches", href: "/shop?category=Watches", catName: "Watches" },
-  { label: "Pants", href: "/pants", catName: "Pants" },
+  { label: "Women's Baggy", href: "/shop?category=Women's Baggy", catName: "Women's Baggy" },
+  { label: "Men's Baggy", href: "/shop?category=Men's Baggy", catName: "Men's Baggy" },
   { label: "T-Shirts", href: "/shop?category=T-Shirts", catName: "T-Shirts" },
   { label: "Hoodies", href: "/shop?category=Hoodies", catName: "Hoodies" },
   { label: "Accessories", href: "/shop?category=Accessories", catName: "Accessories" },
 ];
 
-function isProductInCategory(productCat: string, categoryName: string): boolean {
+function isProductInCategory(productCat: string, categoryName: string, productName: string = ""): boolean {
   const prodCat = (productCat || "").toLowerCase().trim();
+  const prodName = (productName || "").toLowerCase().trim();
   const activeCat = categoryName.toLowerCase().trim();
 
   if (prodCat === activeCat) return true;
 
+  // Women's Baggy / Women Baggy
+  if (activeCat.includes("women") && (activeCat.includes("baggy") || activeCat.includes("pant"))) {
+    const isPant = prodCat.includes("pant") || prodCat.includes("trouser") || prodCat.includes("cargo") || prodCat.includes("jean") || prodCat.includes("baggy") || prodName.includes("pant") || prodName.includes("jean") || prodName.includes("baggy");
+    return isPant && (prodCat.includes("women") || prodName.includes("women") || prodName.includes("ladies") || prodName.includes("female"));
+  }
+
+  // Men's Baggy / Men Baggy
+  if (activeCat.includes("men") && (activeCat.includes("baggy") || activeCat.includes("pant"))) {
+    const isPant = prodCat.includes("pant") || prodCat.includes("trouser") || prodCat.includes("cargo") || prodCat.includes("jean") || prodCat.includes("baggy") || prodName.includes("pant") || prodName.includes("jean") || prodName.includes("baggy");
+    return isPant && !prodCat.includes("women") && !prodName.includes("women") && !prodName.includes("ladies") && !prodName.includes("female");
+  }
+
   if (activeCat.includes("women")) {
-    return prodCat.includes("women") || prodCat.includes("ladies") || prodCat.includes("female");
+    return prodCat.includes("women") || prodCat.includes("ladies") || prodCat.includes("female") || prodName.includes("women");
   }
 
   if (activeCat.includes("men") && !activeCat.includes("women")) {
-    return (prodCat.includes("men") && !prodCat.includes("women")) || prodCat.includes("gents") || prodCat.includes("male");
+    return (prodCat.includes("men") && !prodCat.includes("women")) || (prodName.includes("men") && !prodName.includes("women")) || prodCat.includes("gents") || prodCat.includes("male");
   }
 
   if (activeCat === "watches") {
@@ -57,12 +70,19 @@ function isProductInCategory(productCat: string, categoryName: string): boolean 
   return false;
 }
 
+const DEFAULT_NAV_CATEGORIES = [
+  { label: "Men's Watches", href: "/shop?category=Men's Watches", catName: "Men's Watches" },
+  { label: "Women's Watches", href: "/shop?category=Women's Watches", catName: "Women's Watches" },
+  { label: "Women's Baggy", href: "/shop?category=Women's Baggy", catName: "Women's Baggy" },
+  { label: "Men's Baggy", href: "/shop?category=Men's Baggy", catName: "Men's Baggy" },
+];
+
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [mounted, setMounted] = useState(false);
-  const [navCategories, setNavCategories] = useState<any[]>([]);
+  const [navCategories, setNavCategories] = useState<any[]>(DEFAULT_NAV_CATEGORIES);
 
   const { isCartOpen, openCart, closeCart, isCartShaking, getItemCount } = useCartStore();
   const cartItemCount = getItemCount();
@@ -74,10 +94,10 @@ export function Navbar() {
   useEffect(() => {
     async function filterAvailableNavCategories() {
       const supabase = createClient();
-      const { data: products } = await supabase.from('products').select('category');
+      const { data: products } = await supabase.from('products').select('category, name');
       if (products) {
         const available = ALL_NAV_CATEGORIES.filter((cat) =>
-          products.some((p) => isProductInCategory(p.category, cat.catName))
+          products.some((p) => isProductInCategory(p.category, cat.catName, p.name))
         );
         setNavCategories(available);
       }

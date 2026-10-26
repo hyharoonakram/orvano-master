@@ -10,14 +10,27 @@ import { createClient } from "@/utils/supabase/client";
 
 import { SortDropdown } from "@/components/ui/SortDropdown";
 
-const CATEGORIES = ["All", "Watches", "Shoes", "Top", "Bottom", "Men's Watches", "Women's Watches", "Pants", "T-Shirts", "Hoodies", "Accessories"];
+const CATEGORIES = ["All", "Men's Watches", "Women's Watches", "Women's Baggy", "Men's Baggy", "Watches", "Pants", "Shoes", "Top", "Bottom", "T-Shirts", "Hoodies", "Accessories"];
 
 function isProductInCategory(product: any, categoryName: string): boolean {
   if (categoryName === "All") return true;
   const prodCat = (product.category || "").toLowerCase().trim();
+  const prodName = (product.name || "").toLowerCase().trim();
   const activeCat = categoryName.toLowerCase().trim();
 
   if (prodCat === activeCat) return true;
+
+  // Women's Baggy / Women Baggy
+  if (activeCat.includes("women") && (activeCat.includes("baggy") || activeCat.includes("pant"))) {
+    const isPant = prodCat.includes("pant") || prodCat.includes("trouser") || prodCat.includes("cargo") || prodCat.includes("jean") || prodCat.includes("baggy") || prodName.includes("pant") || prodName.includes("jean") || prodName.includes("baggy");
+    return isPant && (prodCat.includes("women") || prodName.includes("women") || prodName.includes("ladies") || prodName.includes("female"));
+  }
+
+  // Men's Baggy / Men Baggy
+  if (activeCat.includes("men") && (activeCat.includes("baggy") || activeCat.includes("pant"))) {
+    const isPant = prodCat.includes("pant") || prodCat.includes("trouser") || prodCat.includes("cargo") || prodCat.includes("jean") || prodCat.includes("baggy") || prodName.includes("pant") || prodName.includes("jean") || prodName.includes("baggy");
+    return isPant && !prodCat.includes("women") && !prodName.includes("women") && !prodName.includes("ladies") && !prodName.includes("female");
+  }
 
   if (activeCat === "shoes" || activeCat === "shoe") {
     return prodCat.includes("shoe") || prodCat.includes("sneaker") || prodCat.includes("footwear");
@@ -32,11 +45,11 @@ function isProductInCategory(product: any, categoryName: string): boolean {
   }
 
   if (activeCat.includes("women")) {
-    return prodCat.includes("women") || prodCat.includes("ladies") || prodCat.includes("female");
+    return prodCat.includes("women") || prodCat.includes("ladies") || prodCat.includes("female") || prodName.includes("women");
   }
 
   if (activeCat.includes("men") && !activeCat.includes("women")) {
-    return (prodCat.includes("men") && !prodCat.includes("women")) || prodCat.includes("gents") || prodCat.includes("male");
+    return (prodCat.includes("men") && !prodCat.includes("women")) || (prodName.includes("men") && !prodName.includes("women")) || prodCat.includes("gents") || prodCat.includes("male");
   }
 
   if (activeCat === "watches") {
@@ -44,7 +57,7 @@ function isProductInCategory(product: any, categoryName: string): boolean {
   }
 
   if (activeCat === "pants") {
-    return prodCat.includes("pant") || prodCat.includes("trouser") || prodCat.includes("cargo");
+    return prodCat.includes("pant") || prodCat.includes("trouser") || prodCat.includes("cargo") || prodCat.includes("baggy");
   }
 
   if (activeCat === "t-shirts") {
