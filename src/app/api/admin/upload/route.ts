@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { createClient as createServerSupabase } from "@/utils/supabase/server";
 import path from "path";
 import fs from "fs/promises";
 
@@ -23,11 +24,39 @@ const ALLOWED_EXTENSIONS = new Set([
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB limit
 
+// Helper to verify Compact JWS format (three dot-separated base64url segments)
+function isCompactJws(token?: string | null): token is string {
+  if (!token || typeof token !== "string") return false;
+  const parts = token.trim().split(".");
+  return parts.length === 3 && parts.every((p) => p.length > 0);
+}
+
 export async function POST(req: NextRequest) {
   try {
     // 1. Authorization check
     const cookieHeader = req.headers.get("cookie") || "";
-    if (!cookieHeader.includes("admin_verified=true")) {
+    const hasAdminCookie = cookieHeader.includes("admin_verified=true");
+
+    let isSupabaseAdmin = false;
+    let serverSupabase = null;
+    try {
+      serverSupabase = await createServerSupabase();
+      const { data: { user } } = await serverSupabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await serverSupabase
+          .from("users")
+          .select("is_admin")
+          .eq("id", user.id)
+          .single();
+        if (profile && (profile.is_admin === true || profile.is_admin === 1 || profile.is_admin === "1")) {
+          isSupabaseAdmin = true;
+        }
+      }
+    } catch {
+      // Supabase server client cookie resolution is optional if admin_verified cookie is present
+    }
+
+    if (!hasAdminCookie && !isSupabaseAdmin) {
       return NextResponse.json(
         { error: "Unauthorized: Admin access required" },
         { status: 401 }
@@ -47,14 +76,29 @@ export async function POST(req: NextRequest) {
 
     const safePrefix = rawPrefix.replace(/[^a-zA-Z0-9_-]/g, "");
 
-    // Initialize Supabase Admin Client using Service Role Key
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || 'https://rxdxykvpnzwontnmgikb.supabase.co';
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_API_KEY || 'sb_secret_dsvaay5tM9pxT1dCxKoXMQ_1hIZaHKo';
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+    // Supabase project URL
+    const supabaseUrl =
+      process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      process.env.SUPABASE_URL ||
+      "https://rxdxykvpnzwontnmgikb.supabase.co";
+
+    // Validate Supabase Service Role Key: Must be a valid 3-part Compact JWS token (never an invented string)
+    const rawServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_API_KEY;
+    let supabaseAdmin = null;
+
+    if (rawServiceKey) {
+      if (isCompactJws(rawServiceKey)) {
+        supabaseAdmin = createClient(supabaseUrl, rawServiceKey.trim());
+      } else {
+        console.warn(
+          "[Upload] SUPABASE_SERVICE_ROLE_KEY is provided but is not a valid Compact JWS. Expected 3 base64url parts (header.payload.signature)."
+        );
+      }
+    }
 
     const urls: string[] = [];
 
-    // Optional local backup dir
+    // Local storage directory
     const localDir = path.join(process.cwd(), "public", "images");
     try {
       await fs.mkdir(localDir, { recursive: true });
@@ -70,7 +114,9 @@ export async function POST(req: NextRequest) {
 
       if (!ALLOWED_MIME_TYPES.has(f.type.toLowerCase())) {
         return NextResponse.json(
-          { error: `Unsupported file format for ${f.name}. Only JPEG, PNG, WEBP, GIF, and AVIF images are permitted.` },
+          {
+            error: `Unsupported file format for ${f.name}. Only JPEG, PNG, WEBP, GIF, and AVIF images are permitted.`,
+          },
           { status: 400 }
         );
       }
@@ -89,31 +135,61 @@ export async function POST(req: NextRequest) {
       const prefixClean = safePrefix ? `${safePrefix}_` : "";
       const uniqueName = `${prefixClean}${Math.random().toString(36).substring(2, 12)}_${Date.now()}${rawExt}`;
 
-      // Save copy to local directory if possible
-      try {
-        await fs.writeFile(path.join(localDir, uniqueName), buffer);
-      } catch {}
+      // 1. Save to local public/images directory
+      await fs.writeFile(path.join(localDir, uniqueName), buffer);
+      let publicUrl = `/images/${uniqueName}`;
 
-      // Upload to Supabase Storage Bucket using Service Role Key (guaranteed 100% upload success, bypasses client RLS 403)
-      const { error: uploadError } = await supabaseAdmin
-        .storage
-        .from('product-images')
-        .upload(uniqueName, buffer, {
-          contentType: f.type || 'image/webp',
-          upsert: true,
-        });
+      // 2. If valid Supabase Admin Client is configured, upload to Supabase Storage bucket 'product-images'
+      let uploadedToCloud = false;
+      if (supabaseAdmin) {
+        try {
+          const { error: uploadError } = await supabaseAdmin.storage
+            .from("product-images")
+            .upload(uniqueName, buffer, {
+              contentType: f.type || "image/webp",
+              upsert: true,
+            });
 
-      if (uploadError) {
-        console.error("Supabase storage upload error:", uploadError);
-        throw new Error(uploadError.message);
+          if (!uploadError) {
+            const { data: urlData } = supabaseAdmin.storage
+              .from("product-images")
+              .getPublicUrl(uniqueName);
+            if (urlData?.publicUrl) {
+              publicUrl = urlData.publicUrl;
+              uploadedToCloud = true;
+            }
+          } else {
+            console.warn("[Upload] Supabase service role upload error:", uploadError.message);
+          }
+        } catch (storageErr: any) {
+          console.warn("[Upload] Supabase storage exception:", storageErr.message);
+        }
       }
 
-      const { data: urlData } = supabaseAdmin
-        .storage
-        .from('product-images')
-        .getPublicUrl(uniqueName);
+      // 3. If service role key is not configured, attempt upload via authenticated Supabase admin session
+      if (!uploadedToCloud && serverSupabase && isSupabaseAdmin) {
+        try {
+          const { error: userUploadError } = await serverSupabase.storage
+            .from("product-images")
+            .upload(uniqueName, buffer, {
+              contentType: f.type || "image/webp",
+              upsert: true,
+            });
 
-      const publicUrl = urlData.publicUrl;
+          if (!userUploadError) {
+            const { data: urlData } = serverSupabase.storage
+              .from("product-images")
+              .getPublicUrl(uniqueName);
+            if (urlData?.publicUrl) {
+              publicUrl = urlData.publicUrl;
+              uploadedToCloud = true;
+            }
+          }
+        } catch (userErr: any) {
+          console.warn("[Upload] Supabase user session upload exception:", userErr.message);
+        }
+      }
+
       urls.push(publicUrl);
     }
 
@@ -121,6 +197,7 @@ export async function POST(req: NextRequest) {
       success: true,
       url: urls[0],
       urls: urls,
+      storage: urls[0].startsWith("http") ? "supabase" : "local",
     });
   } catch (error: any) {
     console.error("Upload error:", error);
