@@ -4,20 +4,21 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { ShoppingBag, User, Menu, X } from "lucide-react";
+import { ShoppingBag, User, Menu, X, Search, Heart, ChevronDown, Truck, Banknote } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/utils/supabase/client";
 import { useCartStore } from "@/lib/store/cartStore";
 import { CartDrawer } from "@/components/cart/CartDrawer";
+import { SearchModal } from "@/components/search/SearchModal";
 
 const ALL_NAV_CATEGORIES = [
-  { label: "Men's Watches", href: "/shop?category=Men's Watches", catName: "Men's Watches" },
-  { label: "Women's Watches", href: "/shop?category=Women's Watches", catName: "Women's Watches" },
-  { label: "Women's Baggy", href: "/shop?category=Women's Baggy", catName: "Women's Baggy" },
-  { label: "Men's Baggy", href: "/shop?category=Men's Baggy", catName: "Men's Baggy" },
-  { label: "T-Shirts", href: "/shop?category=T-Shirts", catName: "T-Shirts" },
-  { label: "Hoodies", href: "/shop?category=Hoodies", catName: "Hoodies" },
-  { label: "Accessories", href: "/shop?category=Accessories", catName: "Accessories" },
+  { label: "Men's Watches", href: "/shop?category=Men's Watches", catName: "Men's Watches", hasDropdown: false },
+  { label: "Women's Watches", href: "/shop?category=Women's Watches", catName: "Women's Watches", hasDropdown: false },
+  { label: "Women's Baggy", href: "/shop?category=Women's Baggy", catName: "Women's Baggy", hasDropdown: true },
+  { label: "Men's Baggy", href: "/shop?category=Men's Baggy", catName: "Men's Baggy", hasDropdown: true },
+  { label: "T-Shirts", href: "/shop?category=T-Shirts", catName: "T-Shirts", hasDropdown: false },
+  { label: "Hoodies", href: "/shop?category=Hoodies", catName: "Hoodies", hasDropdown: false },
+  { label: "Accessories", href: "/shop?category=Accessories", catName: "Accessories", hasDropdown: false },
 ];
 
 function isProductInCategory(productCat: string, categoryName: string, productName: string = ""): boolean {
@@ -71,15 +72,16 @@ function isProductInCategory(productCat: string, categoryName: string, productNa
 }
 
 const DEFAULT_NAV_CATEGORIES = [
-  { label: "Men's Watches", href: "/shop?category=Men's Watches", catName: "Men's Watches" },
-  { label: "Women's Watches", href: "/shop?category=Women's Watches", catName: "Women's Watches" },
-  { label: "Women's Baggy", href: "/shop?category=Women's Baggy", catName: "Women's Baggy" },
-  { label: "Men's Baggy", href: "/shop?category=Men's Baggy", catName: "Men's Baggy" },
+  { label: "Men's Watches", href: "/shop?category=Men's Watches", catName: "Men's Watches", hasDropdown: false },
+  { label: "Women's Watches", href: "/shop?category=Women's Watches", catName: "Women's Watches", hasDropdown: false },
+  { label: "Women's Baggy", href: "/shop?category=Women's Baggy", catName: "Women's Baggy", hasDropdown: true },
+  { label: "Men's Baggy", href: "/shop?category=Men's Baggy", catName: "Men's Baggy", hasDropdown: true },
 ];
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [mounted, setMounted] = useState(false);
   const [navCategories, setNavCategories] = useState<any[]>(DEFAULT_NAV_CATEGORIES);
@@ -124,7 +126,7 @@ export function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      setIsScrolled(window.scrollY > 30);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -143,82 +145,163 @@ export function Navbar() {
 
   return (
     <>
-      <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled 
-            ? "bg-black/95 md:bg-black/40 md:backdrop-blur-xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.5)]" 
-            : "bg-transparent"
-        }`}
-      >
-        <div className="container mx-auto px-6 h-20 flex items-center justify-between">
-          {/* Mobile Menu Toggle */}
-          <button
-            className="lg:hidden text-white hover:text-[#D4AF37] transition-colors p-2 -ml-2"
-            onClick={() => setIsMobileMenuOpen(true)}
-            aria-label="Open Navigation Menu"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
-
-          {/* Logo */}
-          <Link href="/" className="group relative flex items-center gap-2.5">
-            <div className="relative w-8 h-8 sm:w-9 sm:h-9 shrink-0 flex items-center justify-center">
-              <Image
-                src="/images/orvano-monogram.png"
-                alt="ORVANO"
-                width={36}
-                height={36}
-                priority
-                className="object-contain w-full h-full filter drop-shadow-[0_0_10px_rgba(212,175,55,0.6)] group-hover:scale-110 transition-transform duration-300"
-              />
+      <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+        {/* Luxury Top Announcement Bar (matching design mock) */}
+        <div className="w-full bg-[#080809]/95 backdrop-blur-md border-b border-white/[0.08] text-[9.5px] sm:text-[10.5px] font-medium tracking-[0.16em] text-[#C5A55D] py-1.5 px-4 sm:px-8">
+          <div className="container mx-auto flex items-center justify-between">
+            {/* Left Tagline */}
+            <div className="flex items-center gap-2">
+              <span className="text-[#D4AF37] text-[9px]">&#8212;</span>
+              <span className="text-white/80 font-bold uppercase text-[9px] sm:text-[10px] tracking-[0.2em]">
+                PREMIUM FASHION &amp; TIMEPIECES FOR A BOLDER YOU
+              </span>
+              <span className="text-[#D4AF37] text-[9px]">&#8212;</span>
             </div>
-            <span className="text-xl sm:text-2xl font-extrabold tracking-[0.25em] uppercase text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37] via-[#FFF8DC] to-[#AA771C] drop-shadow-[0_0_12px_rgba(212,175,55,0.4)] group-hover:scale-105 transition-transform duration-300">
-              ORVANO
-            </span>
-          </Link>
 
-          {/* Desktop Nav */}
-          <nav className="hidden lg:flex items-center space-x-6">
-            {[
-              { label: "Shop", href: "/shop" },
-              ...navCategories.map(c => ({ label: c.label, href: c.href })),
-              { label: "About", href: "/about" }
-            ].map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                className="text-xs xl:text-sm font-medium tracking-wide text-white/80 hover:text-[#D4AF37] transition-colors whitespace-nowrap"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Icons */}
-          <div className="flex items-center space-x-6 text-white">
-
-            <Link href={user ? "/account" : "/login"} className="hover:text-[#D4AF37] transition-colors hidden sm:block">
-              <User className="w-5 h-5" />
-            </Link>
-            
-            {/* Cart Icon */}
-            <button 
-              onClick={openCart}
-              className={`hover:text-[#D4AF37] transition-all relative block p-1.5 rounded-full ${
-                isCartShaking ? "bg-[#D4AF37]/20 text-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.8)] scale-110" : ""
-              }`}
-              aria-label="View Shopping Cart"
-            >
-              <ShoppingBag className="w-5 h-5" />
-              {mounted && cartItemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#D4AF37] text-black text-[10px] font-extrabold min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 shadow-md">
-                  {cartItemCount}
+            {/* Right Badges */}
+            <div className="hidden sm:flex items-center gap-4 text-white/70">
+              <div className="flex items-center gap-1.5">
+                <Truck className="w-3.5 h-3.5 text-[#D4AF37]" />
+                <span className="uppercase text-[9px] sm:text-[10px] tracking-widest text-[#D4AF37] font-semibold">
+                  WORLDWIDE SHIPPING
                 </span>
-              )}
+              </div>
+              <span className="text-white/20">|</span>
+              <div className="flex items-center gap-1.5">
+                <Banknote className="w-3.5 h-3.5 text-[#D4AF37]" />
+                <span className="uppercase text-[9px] sm:text-[10px] tracking-widest text-white/85 font-semibold">
+                  COD AVAILABLE
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Header Navbar */}
+        <div
+          className={`w-full transition-all duration-300 ${
+            isScrolled
+              ? "bg-black/90 md:bg-black/60 md:backdrop-blur-xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.6)]"
+              : "bg-black/40 backdrop-blur-md border-b border-white/5"
+          }`}
+        >
+          <div className="container mx-auto px-4 sm:px-6 h-18 sm:h-20 flex items-center justify-between gap-4">
+            {/* Mobile Menu Toggle */}
+            <button
+              className="lg:hidden text-white hover:text-[#D4AF37] transition-colors p-2 -ml-2"
+              onClick={() => setIsMobileMenuOpen(true)}
+              aria-label="Open Navigation Menu"
+            >
+              <Menu className="w-6 h-6" />
             </button>
+
+            {/* Logo */}
+            <Link href="/" className="group relative flex items-center gap-2.5 shrink-0">
+              <div className="relative w-8 h-8 sm:w-9 sm:h-9 shrink-0 flex items-center justify-center">
+                <Image
+                  src="/images/orvano-monogram.png"
+                  alt="ORVANO"
+                  width={36}
+                  height={36}
+                  priority
+                  className="object-contain w-full h-full filter drop-shadow-[0_0_10px_rgba(212,175,55,0.6)] group-hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+              <span className="text-xl sm:text-2xl font-extrabold tracking-[0.25em] uppercase text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37] via-[#FFF8DC] to-[#AA771C] drop-shadow-[0_0_12px_rgba(212,175,55,0.4)] group-hover:scale-105 transition-transform duration-300 font-serif">
+                ORVANO
+              </span>
+            </Link>
+
+            {/* Desktop Navigation Links */}
+            <nav className="hidden lg:flex items-center space-x-5 xl:space-x-7">
+              {[
+                { label: "Shop", href: "/shop", hasDropdown: true },
+                ...navCategories.map((c) => ({
+                  label: c.label,
+                  href: c.href,
+                  hasDropdown: c.hasDropdown ?? (c.label.includes("Baggy") || c.label === "Shop"),
+                })),
+                { label: "About", href: "/about", hasDropdown: false },
+              ].map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="group inline-flex items-center gap-1 text-xs xl:text-sm font-medium tracking-wide text-white/85 hover:text-[#D4AF37] transition-colors whitespace-nowrap"
+                >
+                  <span>{item.label}</span>
+                  {item.hasDropdown && (
+                    <ChevronDown className="w-3 h-3 text-white/40 group-hover:text-[#D4AF37] transition-transform duration-300 group-hover:translate-y-0.5" />
+                  )}
+                </Link>
+              ))}
+            </nav>
+
+            {/* Right Action Items: Apple Search Pill, User, Wishlist, Cart */}
+            <div className="flex items-center space-x-3 sm:space-x-5 text-white shrink-0">
+              {/* Apple-Style Search Input Pill */}
+              <button
+                type="button"
+                onClick={() => setIsSearchOpen(true)}
+                className="hidden md:flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/15 hover:border-[#D4AF37]/60 text-white/50 hover:text-white transition-all duration-300 text-xs shadow-inner cursor-pointer group"
+                aria-label="Search luxury products"
+              >
+                <Search className="w-3.5 h-3.5 text-white/50 group-hover:text-[#D4AF37] transition-colors" />
+                <span className="text-xs font-light text-white/50 group-hover:text-white/80 transition-colors">
+                  Search products...
+                </span>
+                <Search className="w-3 h-3 text-white/30 group-hover:text-[#D4AF37] transition-colors ml-1" />
+              </button>
+
+              {/* Mobile Search Icon Button */}
+              <button
+                type="button"
+                onClick={() => setIsSearchOpen(true)}
+                className="md:hidden p-2 text-white/80 hover:text-[#D4AF37] transition-colors"
+                aria-label="Search products"
+              >
+                <Search className="w-5 h-5" />
+              </button>
+
+              {/* User Account */}
+              <Link
+                href={user ? "/account" : "/login"}
+                className="hover:text-[#D4AF37] transition-colors hidden sm:block p-1"
+                aria-label="User Account"
+              >
+                <User className="w-5 h-5" />
+              </Link>
+
+              {/* Wishlist Heart Icon */}
+              <Link
+                href="/shop"
+                className="hover:text-[#D4AF37] transition-colors hidden sm:block p-1 text-white/85"
+                aria-label="Wishlist"
+              >
+                <Heart className="w-5 h-5" />
+              </Link>
+
+              {/* Cart Icon with Gold Badge */}
+              <button
+                onClick={openCart}
+                className={`hover:text-[#D4AF37] transition-all relative block p-1.5 rounded-full ${
+                  isCartShaking ? "bg-[#D4AF37]/20 text-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.8)] scale-110" : ""
+                }`}
+                aria-label="View Shopping Cart"
+              >
+                <ShoppingBag className="w-5 h-5" />
+                {mounted && (
+                  <span className="absolute -top-1 -right-1 bg-[#D4AF37] text-black text-[10px] font-extrabold min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 shadow-md">
+                    {cartItemCount}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </header>
+
+      {/* Clean Minimalist Apple UI Search Modal */}
+      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
       {/* Portal Mounted Mobile Luxury Menu Overlay */}
       {mounted && createPortal(
