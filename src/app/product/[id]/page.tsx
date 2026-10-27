@@ -56,9 +56,6 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   const viewers = 120 + (product.name.length % 50); // Dummy viewer count
 
   const getCategoryHref = (cat: string) => {
-    const normalized = (cat || "").toLowerCase().trim();
-    if (normalized === "pants") return "/pants";
-    if (normalized === "watches") return "/watches";
     return `/shop?category=${encodeURIComponent(cat)}`;
   };
 

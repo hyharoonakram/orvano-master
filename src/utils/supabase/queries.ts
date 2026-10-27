@@ -34,6 +34,8 @@ export type OrderItem = {
   product: Product
 }
 
+import { normalizeProductData, isProductInCategory } from '../productCatalog';
+
 export function normalizeImageUrl(url: string | null | undefined): string {
   if (!url || typeof url !== 'string' || url.trim() === '') return '/images/watch.png';
   return url.trim();
@@ -41,27 +43,7 @@ export function normalizeImageUrl(url: string | null | undefined): string {
 
 export function normalizeProduct(product: any): Product {
   if (!product) return product;
-  const image_url = normalizeImageUrl(product.image_url);
-  let imgs: string[] = [];
-  if (Array.isArray(product.images)) {
-    imgs = product.images.map((img: string) => normalizeImageUrl(img));
-  } else if (typeof product.images === 'string') {
-    try {
-      const parsed = JSON.parse(product.images);
-      if (Array.isArray(parsed)) imgs = parsed.map((img: string) => normalizeImageUrl(img));
-      else imgs = [normalizeImageUrl(product.images)];
-    } catch {
-      imgs = [normalizeImageUrl(product.images)];
-    }
-  } else {
-    imgs = [image_url];
-  }
-
-  return {
-    ...product,
-    image_url,
-    images: imgs.length > 0 ? imgs : [image_url]
-  };
+  return normalizeProductData(product) as Product;
 }
 
 async function withTimeout<T>(promise: PromiseLike<T>, timeoutMs: number, fallback: T): Promise<T> {
@@ -81,15 +63,7 @@ async function withTimeout<T>(promise: PromiseLike<T>, timeoutMs: number, fallba
 export const getProducts = unstable_cache(
   async (category?: string): Promise<Product[]> => {
     const supabase = createStaticClient();
-    let query = supabase.from('products').select('*').order('created_at', { ascending: false });
-    
-    if (category && category !== 'All') {
-      if (category.toLowerCase() === 'watches') {
-        query = query.ilike('category', '%watch%');
-      } else {
-        query = query.ilike('category', category);
-      }
-    }
+    const query = supabase.from('products').select('*').order('created_at', { ascending: false });
     
     const res = await withTimeout(query, 4000, { data: [], error: null } as any);
     const { data, error } = res;
@@ -97,7 +71,11 @@ export const getProducts = unstable_cache(
       console.error('Error fetching products from Supabase:', error);
       return [];
     }
-    return (data || []).map(normalizeProduct);
+    const allNormalized = (data || []).map(normalizeProduct);
+    if (!category || category === 'All') {
+      return allNormalized;
+    }
+    return allNormalized.filter((p: Product) => isProductInCategory(p, category));
   },
   ['products-list-cache'],
   { revalidate: 10, tags: ['products'] }

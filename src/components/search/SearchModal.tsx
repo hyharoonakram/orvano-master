@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, X, ArrowRight, Sparkles, Tag, Compass, Clock, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { useCurrencyStore } from "@/store/currencyStore";
+import { normalizeProductData } from "@/utils/productCatalog";
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -33,7 +34,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
           .select("id, name, category, price, original_price, image_url, stock_quantity")
           .order("created_at", { ascending: false })
           .then(({ data }) => {
-            if (data) setProducts(data);
+            if (data) setProducts(data.map(normalizeProductData));
             setLoading(false);
           });
       }

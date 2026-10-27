@@ -14,6 +14,7 @@ const NEW_PRODUCTS = [
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { normalizeProductData } from "@/utils/productCatalog";
 
 export default function NewArrivalsPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -29,7 +30,7 @@ export default function NewArrivalsPage() {
         .order("created_at", { ascending: false })
         .limit(10);
         
-      if (data) setProducts(data);
+      if (data) setProducts(data.map(normalizeProductData));
       setLoading(false);
     };
     fetchProducts();

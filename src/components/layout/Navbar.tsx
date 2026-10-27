@@ -11,72 +11,16 @@ import { useCartStore } from "@/lib/store/cartStore";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { SearchModal } from "@/components/search/SearchModal";
 
+import { normalizeProductData, isProductInCategory } from "@/utils/productCatalog";
+
 const ALL_NAV_CATEGORIES = [
   { label: "Men's Watches", href: "/shop?category=Men's Watches", catName: "Men's Watches", hasDropdown: false },
   { label: "Women's Watches", href: "/shop?category=Women's Watches", catName: "Women's Watches", hasDropdown: false },
-  { label: "Women's Baggy", href: "/shop?category=Women's Baggy", catName: "Women's Baggy", hasDropdown: true },
-  { label: "Men's Baggy", href: "/shop?category=Men's Baggy", catName: "Men's Baggy", hasDropdown: true },
-  { label: "T-Shirts", href: "/shop?category=T-Shirts", catName: "T-Shirts", hasDropdown: false },
-  { label: "Hoodies", href: "/shop?category=Hoodies", catName: "Hoodies", hasDropdown: false },
-  { label: "Accessories", href: "/shop?category=Accessories", catName: "Accessories", hasDropdown: false },
+  { label: "Women's Baggy", href: "/shop?category=Women's Baggy", catName: "Women's Baggy", hasDropdown: false },
+  { label: "Men's Baggy", href: "/shop?category=Men's Baggy", catName: "Men's Baggy", hasDropdown: false },
 ];
 
-function isProductInCategory(productCat: string, categoryName: string, productName: string = ""): boolean {
-  const prodCat = (productCat || "").toLowerCase().trim();
-  const prodName = (productName || "").toLowerCase().trim();
-  const activeCat = categoryName.toLowerCase().trim();
-
-  if (prodCat === activeCat) return true;
-
-  // Women's Baggy / Women Baggy
-  if (activeCat.includes("women") && (activeCat.includes("baggy") || activeCat.includes("pant"))) {
-    const isPant = prodCat.includes("pant") || prodCat.includes("trouser") || prodCat.includes("cargo") || prodCat.includes("jean") || prodCat.includes("baggy") || prodName.includes("pant") || prodName.includes("jean") || prodName.includes("baggy");
-    return isPant && (prodCat.includes("women") || prodName.includes("women") || prodName.includes("ladies") || prodName.includes("female"));
-  }
-
-  // Men's Baggy / Men Baggy
-  if (activeCat.includes("men") && (activeCat.includes("baggy") || activeCat.includes("pant"))) {
-    const isPant = prodCat.includes("pant") || prodCat.includes("trouser") || prodCat.includes("cargo") || prodCat.includes("jean") || prodCat.includes("baggy") || prodName.includes("pant") || prodName.includes("jean") || prodName.includes("baggy");
-    return isPant && !prodCat.includes("women") && !prodName.includes("women") && !prodName.includes("ladies") && !prodName.includes("female");
-  }
-
-  if (activeCat.includes("women")) {
-    return prodCat.includes("women") || prodCat.includes("ladies") || prodCat.includes("female") || prodName.includes("women");
-  }
-
-  if (activeCat.includes("men") && !activeCat.includes("women")) {
-    return (prodCat.includes("men") && !prodCat.includes("women")) || (prodName.includes("men") && !prodName.includes("women")) || prodCat.includes("gents") || prodCat.includes("male");
-  }
-
-  if (activeCat === "watches") {
-    return prodCat.includes("watch");
-  }
-
-  if (activeCat === "pants") {
-    return prodCat.includes("pant") || prodCat.includes("trouser") || prodCat.includes("cargo");
-  }
-
-  if (activeCat === "t-shirts") {
-    return prodCat.includes("shirt") || prodCat.includes("tee");
-  }
-
-  if (activeCat === "hoodies") {
-    return prodCat.includes("hoodie") || prodCat.includes("sweatshirt");
-  }
-
-  if (activeCat === "accessories") {
-    return prodCat.includes("accessori") || prodCat.includes("box") || prodCat.includes("belt") || prodCat.includes("wallet");
-  }
-
-  return false;
-}
-
-const DEFAULT_NAV_CATEGORIES = [
-  { label: "Men's Watches", href: "/shop?category=Men's Watches", catName: "Men's Watches", hasDropdown: false },
-  { label: "Women's Watches", href: "/shop?category=Women's Watches", catName: "Women's Watches", hasDropdown: false },
-  { label: "Women's Baggy", href: "/shop?category=Women's Baggy", catName: "Women's Baggy", hasDropdown: true },
-  { label: "Men's Baggy", href: "/shop?category=Men's Baggy", catName: "Men's Baggy", hasDropdown: true },
-];
+const DEFAULT_NAV_CATEGORIES = [...ALL_NAV_CATEGORIES];
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -96,10 +40,11 @@ export function Navbar() {
   useEffect(() => {
     async function filterAvailableNavCategories() {
       const supabase = createClient();
-      const { data: products } = await supabase.from('products').select('category, name');
+      const { data: products } = await supabase.from('products').select('*');
       if (products) {
+        const normalized = products.map(normalizeProductData);
         const available = ALL_NAV_CATEGORIES.filter((cat) =>
-          products.some((p) => isProductInCategory(p.category, cat.catName, p.name))
+          normalized.some((p) => isProductInCategory(p, cat.catName))
         );
         setNavCategories(available);
       }
@@ -215,11 +160,11 @@ export function Navbar() {
             {/* Desktop Navigation Links */}
             <nav className="hidden lg:flex items-center space-x-5 xl:space-x-7">
               {[
-                { label: "Shop", href: "/shop", hasDropdown: true },
+                { label: "Shop", href: "/shop", hasDropdown: false },
                 ...navCategories.map((c) => ({
                   label: c.label,
                   href: c.href,
-                  hasDropdown: c.hasDropdown ?? (c.label.includes("Baggy") || c.label === "Shop"),
+                  hasDropdown: false,
                 })),
                 { label: "About", href: "/about", hasDropdown: false },
               ].map((item) => (

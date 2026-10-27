@@ -26,7 +26,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: any[] }) 
     description: "",
     price: "",
     original_price: "",
-    category: "Watches",
+    category: "Men's Watches",
     image_url: "",
     images: [] as string[],
     stock_quantity: "10",
@@ -34,7 +34,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: any[] }) 
     display_order: "1"
   });
 
-  const categories = ["All", "Men's Watches", "Women's Watches", "Women's Baggy", "Men's Baggy", "Watches", "Pants", "T-Shirts", "Hoodies", "Accessories"];
+  const categories = ["All", "Men's Watches", "Women's Watches", "Women's Clothing", "Men's Baggy Jeans"];
 
   const glowColorPresets = [
     { name: "Ocean Blue", color: "rgba(35, 95, 175, 0.55)", bg: "bg-blue-600" },
@@ -87,7 +87,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: any[] }) 
       description: "",
       price: "",
       original_price: "",
-      category: "Watches",
+      category: "Men's Watches",
       image_url: "",
       images: [],
       stock_quantity: "10",
@@ -322,13 +322,8 @@ export function ProductsClient({ initialProducts }: { initialProducts: any[] }) 
                 >
                   <option value="Men's Watches">Men's Watches</option>
                   <option value="Women's Watches">Women's Watches</option>
-                  <option value="Women's Baggy">Women's Baggy</option>
-                  <option value="Men's Baggy">Men's Baggy</option>
-                  <option value="Watches">General Watches</option>
-                  <option value="Pants">Pants</option>
-                  <option value="T-Shirts">T-Shirts</option>
-                  <option value="Hoodies">Hoodies</option>
-                  <option value="Accessories">Accessories</option>
+                  <option value="Women's Clothing">Women's Clothing</option>
+                  <option value="Men's Baggy Jeans">Men's Baggy Jeans</option>
                 </select>
               </div>
               <div className="space-y-2">

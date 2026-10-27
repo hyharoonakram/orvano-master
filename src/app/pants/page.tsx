@@ -11,6 +11,8 @@ import { createClient } from "@/utils/supabase/client";
 
 import { SortDropdown } from "@/components/ui/SortDropdown";
 
+import { normalizeProductData, isProductInCategory } from "@/utils/productCatalog";
+
 export default function PantsPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,12 +27,9 @@ export default function PantsPage() {
         .order("created_at", { ascending: false });
         
       if (data) {
-        const pantsList = data.filter((p: any) => {
-          const c = (p.category || "").toLowerCase();
-          const n = (p.name || "").toLowerCase();
-          return c.includes("pant") || c.includes("baggy") || c.includes("trouser") || c.includes("cargo") || n.includes("pant") || n.includes("jean") || n.includes("baggy");
-        });
-        setProducts(pantsList.length > 0 ? pantsList : data);
+        const normalized = data.map(normalizeProductData);
+        const pantsList = normalized.filter((p: any) => isProductInCategory(p, "bottom"));
+        setProducts(pantsList);
       }
       setLoading(false);
     };
@@ -55,17 +54,17 @@ export default function PantsPage() {
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-5xl md:text-6xl font-heading text-foreground mb-6 uppercase tracking-wider"
+            className="text-4xl md:text-5xl font-heading text-foreground mb-4 uppercase tracking-wider font-extrabold"
           >
-            Baggy Pants
+            Baggy Pants &amp; Jeans
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-foreground/60 max-w-2xl mx-auto tracking-wide mb-8"
+            className="text-foreground/60 max-w-2xl mx-auto tracking-wide mb-8 text-sm sm:text-base"
           >
-            Elevate your streetwear with our premium selection of oversized, perfectly tailored baggy trousers.
+            Elevate your streetwear with our premium collection of oversized, perfectly tailored baggy pants and jeans.
           </motion.p>
           <motion.div
             initial={{ opacity: 0 }}

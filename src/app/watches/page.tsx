@@ -11,6 +11,8 @@ import { createClient } from "@/utils/supabase/client";
 
 import { SortDropdown } from "@/components/ui/SortDropdown";
 
+import { normalizeProductData, isProductInCategory } from "@/utils/productCatalog";
+
 const WATCH_TABS = ["All", "Men's Watches", "Women's Watches"];
 
 export default function WatchesPage() {
@@ -29,18 +31,15 @@ export default function WatchesPage() {
         .ilike("category", "%watch%")
         .order("created_at", { ascending: false });
         
-      if (data) setProducts(data);
+      if (data) setProducts(data.map(normalizeProductData));
       setLoading(false);
     };
     fetchProducts();
   }, []);
 
   const filteredProducts = products.filter((p) => {
-    if (activeTab === "All") return true;
-    const cat = (p.category || "").toLowerCase();
-    if (activeTab === "Men's Watches") return cat.includes("men") && !cat.includes("women");
-    if (activeTab === "Women's Watches") return cat.includes("women");
-    return true;
+    if (activeTab === "All") return isProductInCategory(p, "watches");
+    return isProductInCategory(p, activeTab);
   });
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
@@ -92,10 +91,8 @@ export default function WatchesPage() {
           <div className="flex flex-wrap items-center gap-2">
             {WATCH_TABS.map((tab) => {
               const count = tab === "All" 
-                ? products.length 
-                : tab === "Men's Watches"
-                ? products.filter(p => (p.category || "").toLowerCase().includes("men") && !(p.category || "").toLowerCase().includes("women")).length
-                : products.filter(p => (p.category || "").toLowerCase().includes("women")).length;
+                ? products.filter(p => isProductInCategory(p, "watches")).length
+                : products.filter(p => isProductInCategory(p, tab)).length;
 
               const isActive = activeTab === tab;
               return (
