@@ -80,7 +80,10 @@ export function CategoryCards({ initialProducts = [] }: { initialProducts?: any[
                 <span className="text-white text-xs sm:text-sm font-bold tracking-[0.2em] uppercase group-hover:text-[#D4AF37] transition-colors duration-300">
                   {category.name}
                 </span>
-                <div className="w-6 h-[1.5px] bg-[#D4AF37]/40 mx-auto mt-1.5 group-hover:w-12 group-hover:bg-[#D4AF37] transition-all duration-300" />
+                <span className="block text-[8.5px] text-white/40 group-hover:text-white/70 uppercase tracking-widest font-mono mt-0.5">
+                  Men &bull; Women
+                </span>
+                <div className="w-6 h-[1.5px] bg-[#D4AF37]/40 mx-auto mt-1 group-hover:w-12 group-hover:bg-[#D4AF37] transition-all duration-300" />
               </div>
             </motion.div>
           </Link>

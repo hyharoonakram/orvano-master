@@ -57,8 +57,10 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
   const getCategoryHref = (cat: string) => {
     const normalized = (cat || "").toLowerCase().trim();
-    if (normalized === "pants") return "/pants";
-    if (normalized === "watches") return "/watches";
+    if (normalized === "pants" || normalized.includes("baggy") || normalized.includes("bottom")) return "/pants";
+    if (normalized.includes("watch")) return "/watches";
+    if (normalized === "top" || normalized.includes("shirt")) return "/shop?category=TOP";
+    if (normalized === "shoes" || normalized.includes("shoe")) return "/shop?category=SHOES";
     return `/shop?category=${encodeURIComponent(cat)}`;
   };
 

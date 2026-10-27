@@ -135,27 +135,27 @@ export function Footer() {
             <ul className="space-y-3 text-xs sm:text-sm font-light">
               <li>
                 <Link href="/watches" className="text-white/70 hover:text-[#D4AF37] transition-colors duration-200 block">
-                  Luxury Watches
+                  Watches (Men &amp; Women)
                 </Link>
               </li>
               <li>
                 <Link href="/pants" className="text-white/70 hover:text-[#D4AF37] transition-colors duration-200 block">
-                  Baggy Pants
+                  Bottom (Baggy Pants &amp; Jeans)
                 </Link>
               </li>
               <li>
-                <Link href="/new" className="text-white/70 hover:text-[#D4AF37] transition-colors duration-200 block">
-                  New Arrivals
+                <Link href="/shop?category=TOP" className="text-white/70 hover:text-[#D4AF37] transition-colors duration-200 block">
+                  Top (Shirts &amp; Tees)
                 </Link>
               </li>
               <li>
-                <Link href="/best" className="text-white/70 hover:text-[#D4AF37] transition-colors duration-200 block">
-                  Best Sellers
+                <Link href="/shop?category=SHOES" className="text-white/70 hover:text-[#D4AF37] transition-colors duration-200 block">
+                  Shoes Collection
                 </Link>
               </li>
               <li>
                 <Link href="/shop" className="text-white/70 hover:text-[#D4AF37] transition-colors duration-200 block">
-                  Full Catalog
+                  Full Catalog (All Products)
                 </Link>
               </li>
             </ul>

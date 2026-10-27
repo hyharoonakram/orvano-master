@@ -11,71 +11,75 @@ import { useCartStore } from "@/lib/store/cartStore";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { SearchModal } from "@/components/search/SearchModal";
 
-const ALL_NAV_CATEGORIES = [
-  { label: "Men's Watches", href: "/shop?category=Men's Watches", catName: "Men's Watches", hasDropdown: false },
-  { label: "Women's Watches", href: "/shop?category=Women's Watches", catName: "Women's Watches", hasDropdown: false },
-  { label: "Women's Baggy", href: "/shop?category=Women's Baggy", catName: "Women's Baggy", hasDropdown: true },
-  { label: "Men's Baggy", href: "/shop?category=Men's Baggy", catName: "Men's Baggy", hasDropdown: true },
-  { label: "T-Shirts", href: "/shop?category=T-Shirts", catName: "T-Shirts", hasDropdown: false },
-  { label: "Hoodies", href: "/shop?category=Hoodies", catName: "Hoodies", hasDropdown: false },
-  { label: "Accessories", href: "/shop?category=Accessories", catName: "Accessories", hasDropdown: false },
-];
-
-function isProductInCategory(productCat: string, categoryName: string, productName: string = ""): boolean {
-  const prodCat = (productCat || "").toLowerCase().trim();
-  const prodName = (productName || "").toLowerCase().trim();
-  const activeCat = categoryName.toLowerCase().trim();
-
-  if (prodCat === activeCat) return true;
-
-  // Women's Baggy / Women Baggy
-  if (activeCat.includes("women") && (activeCat.includes("baggy") || activeCat.includes("pant"))) {
-    const isPant = prodCat.includes("pant") || prodCat.includes("trouser") || prodCat.includes("cargo") || prodCat.includes("jean") || prodCat.includes("baggy") || prodName.includes("pant") || prodName.includes("jean") || prodName.includes("baggy");
-    return isPant && (prodCat.includes("women") || prodName.includes("women") || prodName.includes("ladies") || prodName.includes("female"));
-  }
-
-  // Men's Baggy / Men Baggy
-  if (activeCat.includes("men") && (activeCat.includes("baggy") || activeCat.includes("pant"))) {
-    const isPant = prodCat.includes("pant") || prodCat.includes("trouser") || prodCat.includes("cargo") || prodCat.includes("jean") || prodCat.includes("baggy") || prodName.includes("pant") || prodName.includes("jean") || prodName.includes("baggy");
-    return isPant && !prodCat.includes("women") && !prodName.includes("women") && !prodName.includes("ladies") && !prodName.includes("female");
-  }
-
-  if (activeCat.includes("women")) {
-    return prodCat.includes("women") || prodCat.includes("ladies") || prodCat.includes("female") || prodName.includes("women");
-  }
-
-  if (activeCat.includes("men") && !activeCat.includes("women")) {
-    return (prodCat.includes("men") && !prodCat.includes("women")) || (prodName.includes("men") && !prodName.includes("women")) || prodCat.includes("gents") || prodCat.includes("male");
-  }
-
-  if (activeCat === "watches") {
-    return prodCat.includes("watch");
-  }
-
-  if (activeCat === "pants") {
-    return prodCat.includes("pant") || prodCat.includes("trouser") || prodCat.includes("cargo");
-  }
-
-  if (activeCat === "t-shirts") {
-    return prodCat.includes("shirt") || prodCat.includes("tee");
-  }
-
-  if (activeCat === "hoodies") {
-    return prodCat.includes("hoodie") || prodCat.includes("sweatshirt");
-  }
-
-  if (activeCat === "accessories") {
-    return prodCat.includes("accessori") || prodCat.includes("box") || prodCat.includes("belt") || prodCat.includes("wallet");
-  }
-
-  return false;
+interface NavSubItem {
+  label: string;
+  href: string;
+  tag?: string;
 }
 
-const DEFAULT_NAV_CATEGORIES = [
-  { label: "Men's Watches", href: "/shop?category=Men's Watches", catName: "Men's Watches", hasDropdown: false },
-  { label: "Women's Watches", href: "/shop?category=Women's Watches", catName: "Women's Watches", hasDropdown: false },
-  { label: "Women's Baggy", href: "/shop?category=Women's Baggy", catName: "Women's Baggy", hasDropdown: true },
-  { label: "Men's Baggy", href: "/shop?category=Men's Baggy", catName: "Men's Baggy", hasDropdown: true },
+interface NavItem {
+  label: string;
+  href: string;
+  hasDropdown: boolean;
+  subItems?: NavSubItem[];
+}
+
+const MAIN_NAV_ITEMS: NavItem[] = [
+  {
+    label: "Shop",
+    href: "/shop",
+    hasDropdown: true,
+    subItems: [
+      { label: "All Collections", href: "/shop" },
+      { label: "New Arrivals", href: "/new", tag: "HOT" },
+      { label: "Best Sellers", href: "/best" },
+    ],
+  },
+  {
+    label: "Watches",
+    href: "/watches",
+    hasDropdown: true,
+    subItems: [
+      { label: "All Watches", href: "/watches" },
+      { label: "Men's Watches (Male)", href: "/shop?category=WATCHES&gender=Men" },
+      { label: "Women's Watches (Female)", href: "/shop?category=WATCHES&gender=Women" },
+    ],
+  },
+  {
+    label: "Bottom",
+    href: "/pants",
+    hasDropdown: true,
+    subItems: [
+      { label: "All Baggy Pants", href: "/pants" },
+      { label: "Men's Baggy Pants (Male)", href: "/shop?category=BOTTOM&gender=Men" },
+      { label: "Women's Baggy Pants (Female)", href: "/shop?category=BOTTOM&gender=Women" },
+    ],
+  },
+  {
+    label: "Top",
+    href: "/shop?category=TOP",
+    hasDropdown: true,
+    subItems: [
+      { label: "All Tops", href: "/shop?category=TOP" },
+      { label: "Men's Tops (Male)", href: "/shop?category=TOP&gender=Men" },
+      { label: "Women's Tops (Female)", href: "/shop?category=TOP&gender=Women" },
+    ],
+  },
+  {
+    label: "Shoes",
+    href: "/shop?category=SHOES",
+    hasDropdown: true,
+    subItems: [
+      { label: "All Shoes", href: "/shop?category=SHOES" },
+      { label: "Men's Shoes (Male)", href: "/shop?category=SHOES&gender=Men" },
+      { label: "Women's Shoes (Female)", href: "/shop?category=SHOES&gender=Women" },
+    ],
+  },
+  {
+    label: "About",
+    href: "/about",
+    hasDropdown: false,
+  },
 ];
 
 export function Navbar() {
@@ -84,27 +88,14 @@ export function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [mounted, setMounted] = useState(false);
-  const [navCategories, setNavCategories] = useState<any[]>(DEFAULT_NAV_CATEGORIES);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [expandedMobileCategory, setExpandedMobileCategory] = useState<string | null>(null);
 
   const { isCartOpen, openCart, closeCart, isCartShaking, getItemCount } = useCartStore();
   const cartItemCount = getItemCount();
 
   useEffect(() => {
     setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    async function filterAvailableNavCategories() {
-      const supabase = createClient();
-      const { data: products } = await supabase.from('products').select('category, name');
-      if (products) {
-        const available = ALL_NAV_CATEGORIES.filter((cat) =>
-          products.some((p) => isProductInCategory(p.category, cat.catName, p.name))
-        );
-        setNavCategories(available);
-      }
-    }
-    filterAvailableNavCategories();
   }, []);
 
   useEffect(() => {
@@ -146,7 +137,7 @@ export function Navbar() {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
-        {/* Luxury Top Announcement Bar (matching design mock) */}
+        {/* Luxury Top Announcement Bar */}
         <div className="w-full bg-[#080809]/95 backdrop-blur-md border-b border-white/[0.08] text-[9.5px] sm:text-[10.5px] font-medium tracking-[0.16em] text-[#C5A55D] py-1.5 px-4 sm:px-8">
           <div className="container mx-auto flex items-center justify-between">
             {/* Left Tagline */}
@@ -212,27 +203,58 @@ export function Navbar() {
               </span>
             </Link>
 
-            {/* Desktop Navigation Links */}
+            {/* Desktop Navigation Links with 4 Broad Categories + Dropdowns */}
             <nav className="hidden lg:flex items-center space-x-5 xl:space-x-7">
-              {[
-                { label: "Shop", href: "/shop", hasDropdown: true },
-                ...navCategories.map((c) => ({
-                  label: c.label,
-                  href: c.href,
-                  hasDropdown: c.hasDropdown ?? (c.label.includes("Baggy") || c.label === "Shop"),
-                })),
-                { label: "About", href: "/about", hasDropdown: false },
-              ].map((item) => (
-                <Link
+              {MAIN_NAV_ITEMS.map((item) => (
+                <div
                   key={item.label}
-                  href={item.href}
-                  className="group inline-flex items-center gap-1 text-xs xl:text-sm font-medium tracking-wide text-white/85 hover:text-[#D4AF37] transition-colors whitespace-nowrap"
+                  className="relative group"
+                  onMouseEnter={() => item.hasDropdown && setActiveDropdown(item.label)}
+                  onMouseLeave={() => setActiveDropdown(null)}
                 >
-                  <span>{item.label}</span>
-                  {item.hasDropdown && (
-                    <ChevronDown className="w-3 h-3 text-white/40 group-hover:text-[#D4AF37] transition-transform duration-300 group-hover:translate-y-0.5" />
+                  <Link
+                    href={item.href}
+                    className="inline-flex items-center gap-1 text-xs xl:text-sm font-medium tracking-wide text-white/85 hover:text-[#D4AF37] transition-colors py-2 whitespace-nowrap"
+                  >
+                    <span>{item.label}</span>
+                    {item.hasDropdown && (
+                      <ChevronDown className="w-3 h-3 text-white/40 group-hover:text-[#D4AF37] transition-transform duration-300 group-hover:translate-y-0.5" />
+                    )}
+                  </Link>
+
+                  {/* Dropdown Menu */}
+                  {item.hasDropdown && item.subItems && (
+                    <div
+                      className={`absolute top-full left-0 pt-2 transition-all duration-200 ${
+                        activeDropdown === item.label
+                          ? "opacity-100 visible translate-y-0 pointer-events-auto"
+                          : "opacity-0 invisible -translate-y-2 pointer-events-none"
+                      }`}
+                    >
+                      <div className="w-56 bg-[#0B0B0E]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-2 shadow-2xl shadow-black/80 space-y-1">
+                        {item.subItems.map((sub) => (
+                          <Link
+                            key={sub.label}
+                            href={sub.href}
+                            onClick={() => setActiveDropdown(null)}
+                            className="flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-white/5 text-xs text-white/80 hover:text-[#D4AF37] transition-colors group/sub"
+                          >
+                            <span>{sub.label}</span>
+                            {sub.tag ? (
+                              <span className="text-[9px] px-1.5 py-0.5 rounded font-extrabold bg-[#D4AF37] text-black tracking-wider">
+                                {sub.tag}
+                              </span>
+                            ) : (
+                              <span className="text-white/20 group-hover/sub:text-[#D4AF37] transition-colors text-[10px]">
+                                &rarr;
+                              </span>
+                            )}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
                   )}
-                </Link>
+                </div>
               ))}
             </nav>
 
@@ -300,10 +322,10 @@ export function Navbar() {
         </div>
       </header>
 
-      {/* Clean Minimalist Apple UI Search Modal */}
+      {/* Clean Minimalist Search Modal */}
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
-      {/* Portal Mounted Mobile Luxury Menu Overlay */}
+      {/* Mobile Drawer */}
       {mounted && createPortal(
         <AnimatePresence>
           {isMobileMenuOpen && (
@@ -381,30 +403,67 @@ export function Navbar() {
                     </Link>
                   </div>
 
-                  {/* Categorized Navigation Links */}
+                  {/* Categorized Navigation Links with 4 Broad Categories */}
                   <nav className="mt-8 space-y-2">
-                    {[
-                      { label: "ALL PRODUCTS", href: "/shop" },
-                      ...navCategories.map(c => ({ label: c.label.toUpperCase(), href: c.href })),
-                      { label: "NEW ARRIVALS", href: "/new" },
-                      { label: "THE ORIGIN STORY", href: "/about" },
-                      { label: "TRACK ORDER", href: "/track" },
-                      { label: "CUSTOMER SUPPORT", href: "/contact" }
-                    ].map((item) => (
-                      <Link 
-                        key={item.label}
-                        href={item.href}
+                    {MAIN_NAV_ITEMS.map((item) => {
+                      const isExpanded = expandedMobileCategory === item.label;
+                      return (
+                        <div key={item.label} className="border-b border-white/5 pb-2">
+                          <div className="flex items-center justify-between">
+                            <Link
+                              href={item.href}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                              className="text-xs font-bold tracking-[0.2em] uppercase text-white/90 hover:text-[#D4AF37] py-2 px-2"
+                            >
+                              {item.label}
+                            </Link>
+                            {item.subItems && (
+                              <button
+                                onClick={() => setExpandedMobileCategory(isExpanded ? null : item.label)}
+                                className="p-2 text-white/40 hover:text-[#D4AF37]"
+                              >
+                                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? "rotate-180 text-[#D4AF37]" : ""}`} />
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Expanded Sub-links */}
+                          {item.subItems && isExpanded && (
+                            <div className="pl-4 pt-1 pb-2 space-y-1.5">
+                              {item.subItems.map((sub) => (
+                                <Link
+                                  key={sub.label}
+                                  href={sub.href}
+                                  onClick={() => setIsMobileMenuOpen(false)}
+                                  className="block text-[11px] text-white/60 hover:text-[#D4AF37] py-1 px-2 rounded-md hover:bg-white/5 transition-colors"
+                                >
+                                  {sub.label}
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+
+                    <div className="pt-2">
+                      <Link
+                        href="/track"
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="group flex items-center justify-between p-3.5 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10 text-white/90 hover:text-[#D4AF37] transition-all"
+                        className="flex items-center justify-between p-2.5 rounded-xl text-xs font-semibold text-white/70 hover:text-[#D4AF37]"
                       >
-                        <span className="text-xs font-bold tracking-[0.2em] uppercase font-sans">
-                          {item.label}
-                        </span>
-                        <span className="text-white/20 group-hover:text-[#D4AF37] group-hover:translate-x-1 transition-all">
-                          →
-                        </span>
+                        <span>TRACK ORDER</span>
+                        <span className="text-white/20">&rarr;</span>
                       </Link>
-                    ))}
+                      <Link
+                        href="/contact"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center justify-between p-2.5 rounded-xl text-xs font-semibold text-white/70 hover:text-[#D4AF37]"
+                      >
+                        <span>CUSTOMER SUPPORT</span>
+                        <span className="text-white/20">&rarr;</span>
+                      </Link>
+                    </div>
                   </nav>
                 </div>
 
@@ -430,7 +489,7 @@ export function Navbar() {
         document.body
       )}
 
-      {/* Cart Drawer connected to global store */}
+      {/* Cart Drawer */}
       <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
     </>
   );

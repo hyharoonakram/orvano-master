@@ -7,6 +7,7 @@ import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useCurrencyStore } from "@/store/currencyStore";
+import { classifyProduct, isProductMatchingFilter } from "@/utils/categories";
 
 export function ProductsClient({ initialProducts }: { initialProducts: any[] }) {
   const [products, setProducts] = useState(initialProducts);
@@ -14,7 +15,8 @@ export function ProductsClient({ initialProducts }: { initialProducts: any[] }) 
   const [isAdding, setIsAdding] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedBroad, setSelectedBroad] = useState("All");
+  const [selectedGender, setSelectedGender] = useState("All");
 
   const formatPrice = useCurrencyStore((state) => state.formatPrice);
   
@@ -26,7 +28,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: any[] }) 
     description: "",
     price: "",
     original_price: "",
-    category: "Watches",
+    category: "Men's Watches",
     image_url: "",
     images: [] as string[],
     stock_quantity: "10",
@@ -34,7 +36,12 @@ export function ProductsClient({ initialProducts }: { initialProducts: any[] }) 
     display_order: "1"
   });
 
-  const categories = ["All", "Men's Watches", "Women's Watches", "Women's Baggy", "Men's Baggy", "Watches", "Pants", "T-Shirts", "Hoodies", "Accessories"];
+  const broadCategories = ["All", "Top", "Bottom", "Watches", "Shoes"];
+  const subCategories = [
+    { id: "All", label: "All Genders" },
+    { id: "MEN", label: "Men (Male)" },
+    { id: "WOMEN", label: "Women (Female)" }
+  ];
 
   const glowColorPresets = [
     { name: "Ocean Blue", color: "rgba(35, 95, 175, 0.55)", bg: "bg-blue-600" },
@@ -58,7 +65,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: any[] }) 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           product.category?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === "All" || product.category?.toLowerCase() === selectedCategory.toLowerCase();
+    const matchesCategory = isProductMatchingFilter(product, selectedBroad, selectedGender);
     return matchesSearch && matchesCategory;
   });
 
@@ -314,21 +321,32 @@ export function ProductsClient({ initialProducts }: { initialProducts: any[] }) 
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-white/70">Category</label>
+                <label className="text-xs font-bold uppercase tracking-widest text-white/70">Category (Broad & Subcategory)</label>
                 <select 
                   value={formData.category} 
                   onChange={e => setFormData({...formData, category: e.target.value})} 
                   className="w-full bg-[#050506] border border-white/10 focus:border-[#D4AF37] px-4 py-3 text-sm rounded-xl text-white outline-none transition-colors"
                 >
-                  <option value="Men's Watches">Men's Watches</option>
-                  <option value="Women's Watches">Women's Watches</option>
-                  <option value="Women's Baggy">Women's Baggy</option>
-                  <option value="Men's Baggy">Men's Baggy</option>
-                  <option value="Watches">General Watches</option>
-                  <option value="Pants">Pants</option>
-                  <option value="T-Shirts">T-Shirts</option>
-                  <option value="Hoodies">Hoodies</option>
-                  <option value="Accessories">Accessories</option>
+                  <optgroup label="👖 BOTTOM (Baggy Pants & Jeans)">
+                    <option value="Men's Baggy">Men's Baggy Pants / Jeans (Male)</option>
+                    <option value="Women's Baggy">Women's Baggy Pants / Jeans (Female)</option>
+                  </optgroup>
+                  <optgroup label="⌚ WATCHES">
+                    <option value="Men's Watches">Men's Watches (Male)</option>
+                    <option value="Women's Watches">Women's Watches (Female)</option>
+                  </optgroup>
+                  <optgroup label="👕 TOP (Shirts & Tees)">
+                    <option value="T-Shirts">Men's Tops / T-Shirts (Male)</option>
+                    <option value="Women's Top">Women's Tops (Female)</option>
+                    <option value="Hoodies">Hoodies / Outerwear</option>
+                  </optgroup>
+                  <optgroup label="👟 SHOES">
+                    <option value="Men's Shoes">Men's Shoes (Male)</option>
+                    <option value="Women's Shoes">Women's Shoes (Female)</option>
+                  </optgroup>
+                  <optgroup label="✨ OTHER">
+                    <option value="Accessories">Accessories</option>
+                  </optgroup>
                 </select>
               </div>
               <div className="space-y-2">
@@ -515,21 +533,42 @@ export function ProductsClient({ initialProducts }: { initialProducts: any[] }) 
               />
             </div>
 
-            {/* Category Filter Pills */}
-            <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-4 py-2 rounded-xl text-xs uppercase tracking-wider font-bold transition-all whitespace-nowrap ${
-                    selectedCategory === cat
-                      ? "bg-[#D4AF37] text-black shadow-[0_0_15px_rgba(212,175,55,0.4)]"
-                      : "bg-white/5 text-white/60 hover:text-white border border-white/10"
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
+            {/* Broad Category Filter Pills */}
+            <div className="flex flex-col gap-2 w-full md:w-auto">
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                <span className="text-[10px] text-white/40 uppercase tracking-widest mr-1 font-mono">Category:</span>
+                {broadCategories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedBroad(cat)}
+                    className={`px-3 py-1.5 rounded-lg text-xs uppercase tracking-wider font-bold transition-all whitespace-nowrap ${
+                      selectedBroad.toUpperCase() === cat.toUpperCase()
+                        ? "bg-[#D4AF37] text-black shadow-[0_0_15px_rgba(212,175,55,0.4)]"
+                        : "bg-white/5 text-white/60 hover:text-white border border-white/10"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
+              {/* Subcategory (Gender) Filter Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto">
+                <span className="text-[10px] text-white/40 uppercase tracking-widest mr-1 font-mono">Gender:</span>
+                {subCategories.map((sub) => (
+                  <button
+                    key={sub.id}
+                    onClick={() => setSelectedGender(sub.id)}
+                    className={`px-3 py-1 rounded-lg text-[11px] uppercase tracking-wider font-semibold transition-all whitespace-nowrap ${
+                      selectedGender.toUpperCase() === sub.id.toUpperCase()
+                        ? "bg-white text-black font-bold shadow-md"
+                        : "bg-white/5 text-white/50 hover:text-white border border-white/10"
+                    }`}
+                  >
+                    {sub.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -542,7 +581,8 @@ export function ProductsClient({ initialProducts }: { initialProducts: any[] }) 
                     <th className="px-6 py-4">Pos (#)</th>
                     <th className="px-6 py-4">Thumbnail</th>
                     <th className="px-6 py-4">Name</th>
-                    <th className="px-6 py-4">Category</th>
+                    <th className="px-6 py-4">Broad Category</th>
+                    <th className="px-6 py-4">Subcategory</th>
                     <th className="px-6 py-4">Price</th>
                     <th className="px-6 py-4">Stock Status</th>
                     <th className="px-6 py-4 text-right">Actions</th>
@@ -551,11 +591,13 @@ export function ProductsClient({ initialProducts }: { initialProducts: any[] }) 
                 <tbody className="divide-y divide-white/5">
                   {filteredProducts.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-6 py-12 text-center text-white/40 uppercase tracking-wider">
-                        No matching products found.
+                      <td colSpan={8} className="px-6 py-12 text-center text-white/40 uppercase tracking-wider">
+                        No matching products found for selected Category &amp; Gender.
                       </td>
                     </tr>
-                  ) : filteredProducts.map((product, index) => (
+                  ) : filteredProducts.map((product, index) => {
+                    const info = classifyProduct(product);
+                    return (
                     <tr key={product.id} className="hover:bg-white/[0.02] transition-colors group">
                       <td className="px-6 py-4 font-mono font-extrabold text-[#D4AF37]">
                         <span className="bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37] px-2.5 py-1 rounded-lg text-xs">
@@ -579,8 +621,19 @@ export function ProductsClient({ initialProducts }: { initialProducts: any[] }) 
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 uppercase text-[10px] tracking-widest font-semibold text-white/60">
-                        {product.category}
+                      <td className="px-6 py-4">
+                        <span className="px-2.5 py-1 rounded-md text-[10px] uppercase tracking-wider font-extrabold bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/30">
+                          {info.broadCategory}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2.5 py-1 rounded-md text-[10px] uppercase tracking-wider font-extrabold ${
+                          info.gender === 'WOMEN'
+                            ? 'bg-pink-500/10 text-pink-400 border border-pink-500/30'
+                            : 'bg-blue-500/10 text-blue-400 border border-blue-500/30'
+                        }`}>
+                          {info.gender === 'WOMEN' ? 'Female (Women)' : 'Male (Men)'}
+                        </span>
                       </td>
                       <td className="px-6 py-4 font-extrabold text-[#D4AF37]">
                         {formatPrice(product.price)}
@@ -615,7 +668,8 @@ export function ProductsClient({ initialProducts }: { initialProducts: any[] }) 
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  );
+                })}
                 </tbody>
               </table>
             </div>

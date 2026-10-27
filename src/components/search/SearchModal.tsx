@@ -87,10 +87,14 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   };
 
   const quickCategories = [
+    { label: "Top", value: "TOP" },
+    { label: "Bottom (Baggy)", value: "BOTTOM" },
+    { label: "Watches", value: "WATCHES" },
+    { label: "Shoes", value: "SHOES" },
+    { label: "Men's Baggy", value: "Men's Baggy" },
+    { label: "Women's Baggy", value: "Women's Baggy" },
     { label: "Men's Watches", value: "Men's Watches" },
     { label: "Women's Watches", value: "Women's Watches" },
-    { label: "Women's Baggy", value: "Women's Baggy" },
-    { label: "Men's Baggy", value: "Men's Baggy" },
     { label: "All Products", value: "All" },
   ];
 
