@@ -8,6 +8,7 @@ import { Footer } from "@/components/layout/Footer";
 import { ProductCard } from "@/components/product/ProductCard";
 import { createClient } from "@/utils/supabase/client";
 import { SortDropdown } from "@/components/ui/SortDropdown";
+<<<<<<< HEAD
 import { 
   classifyProduct, 
   isProductMatchingFilter, 
@@ -15,6 +16,11 @@ import {
   BROAD_CATEGORIES,
   BroadCategory 
 } from "@/utils/categories";
+=======
+import { STORE_CATEGORIES, normalizeProductData, isProductInCategory } from "@/utils/productCatalog";
+
+const CATEGORIES = [...STORE_CATEGORIES];
+>>>>>>> 7831bb0cf53aa95ee2ddfae316e653727c4774c4
 
 function ShopContent() {
   const searchParams = useSearchParams();
@@ -50,7 +56,7 @@ function ShopContent() {
     const fetchProducts = async () => {
       const supabase = createClient();
       const { data } = await supabase.from("products").select("*").order("created_at", { ascending: false });
-      if (data) setProducts(data);
+      if (data) setProducts(data.map(normalizeProductData));
       setLoading(false);
     };
     fetchProducts();

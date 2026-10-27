@@ -10,11 +10,17 @@ import { createClient } from "@/utils/supabase/client";
 import { SortDropdown } from "@/components/ui/SortDropdown";
 import { isProductMatchingFilter } from "@/utils/categories";
 
+<<<<<<< HEAD
 const WATCH_TABS = [
   { id: "ALL", label: "All Watches" },
   { id: "MEN", label: "Men's Watches" },
   { id: "WOMEN", label: "Women's Watches" },
 ];
+=======
+import { normalizeProductData, isProductInCategory } from "@/utils/productCatalog";
+
+const WATCH_TABS = ["All", "Men's Watches", "Women's Watches"];
+>>>>>>> 7831bb0cf53aa95ee2ddfae316e653727c4774c4
 
 export default function WatchesPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -30,19 +36,28 @@ export default function WatchesPage() {
         .select("*")
         .order("created_at", { ascending: false });
         
+<<<<<<< HEAD
       if (data) {
         // Strictly filter to broad category WATCHES
         const watchList = data.filter((p: any) => isProductMatchingFilter(p, "WATCHES", "ALL"));
         setProducts(watchList);
       }
+=======
+      if (data) setProducts(data.map(normalizeProductData));
+>>>>>>> 7831bb0cf53aa95ee2ddfae316e653727c4774c4
       setLoading(false);
     };
     fetchProducts();
   }, []);
 
   const filteredProducts = products.filter((p) => {
+<<<<<<< HEAD
     if (activeTab === "ALL") return true;
     return isProductMatchingFilter(p, "WATCHES", activeTab);
+=======
+    if (activeTab === "All") return isProductInCategory(p, "watches");
+    return isProductInCategory(p, activeTab);
+>>>>>>> 7831bb0cf53aa95ee2ddfae316e653727c4774c4
   });
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
@@ -104,8 +119,16 @@ export default function WatchesPage() {
         <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
           <div className="flex flex-wrap items-center gap-2">
             {WATCH_TABS.map((tab) => {
+<<<<<<< HEAD
               const count = tab.id === "ALL" ? allCount : tab.id === "MEN" ? menCount : womenCount;
               const isActive = activeTab === tab.id;
+=======
+              const count = tab === "All" 
+                ? products.filter(p => isProductInCategory(p, "watches")).length
+                : products.filter(p => isProductInCategory(p, tab)).length;
+
+              const isActive = activeTab === tab;
+>>>>>>> 7831bb0cf53aa95ee2ddfae316e653727c4774c4
               return (
                 <button
                   key={tab.id}

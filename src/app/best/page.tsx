@@ -15,6 +15,7 @@ const BEST_SELLERS = [
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { normalizeProductData } from "@/utils/productCatalog";
 
 export default function BestSellersPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -30,7 +31,7 @@ export default function BestSellersPage() {
         .order("price", { ascending: false })
         .limit(10);
         
-      if (data) setProducts(data);
+      if (data) setProducts(data.map(normalizeProductData));
       setLoading(false);
     };
     fetchProducts();
