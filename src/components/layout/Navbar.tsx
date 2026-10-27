@@ -11,7 +11,6 @@ import { useCartStore } from "@/lib/store/cartStore";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { SearchModal } from "@/components/search/SearchModal";
 
-<<<<<<< HEAD
 interface NavSubItem {
   label: string;
   href: string;
@@ -82,18 +81,6 @@ const MAIN_NAV_ITEMS: NavItem[] = [
     hasDropdown: false,
   },
 ];
-=======
-import { normalizeProductData, isProductInCategory } from "@/utils/productCatalog";
-
-const ALL_NAV_CATEGORIES = [
-  { label: "Men's Watches", href: "/shop?category=Men's Watches", catName: "Men's Watches", hasDropdown: false },
-  { label: "Women's Watches", href: "/shop?category=Women's Watches", catName: "Women's Watches", hasDropdown: false },
-  { label: "Women's Baggy", href: "/shop?category=Women's Baggy", catName: "Women's Baggy", hasDropdown: false },
-  { label: "Men's Baggy", href: "/shop?category=Men's Baggy", catName: "Men's Baggy", hasDropdown: false },
-];
-
-const DEFAULT_NAV_CATEGORIES = [...ALL_NAV_CATEGORIES];
->>>>>>> 7831bb0cf53aa95ee2ddfae316e653727c4774c4
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -112,24 +99,6 @@ export function Navbar() {
   }, []);
 
   useEffect(() => {
-<<<<<<< HEAD
-=======
-    async function filterAvailableNavCategories() {
-      const supabase = createClient();
-      const { data: products } = await supabase.from('products').select('*');
-      if (products) {
-        const normalized = products.map(normalizeProductData);
-        const available = ALL_NAV_CATEGORIES.filter((cat) =>
-          normalized.some((p) => isProductInCategory(p, cat.catName))
-        );
-        setNavCategories(available);
-      }
-    }
-    filterAvailableNavCategories();
-  }, []);
-
-  useEffect(() => {
->>>>>>> 7831bb0cf53aa95ee2ddfae316e653727c4774c4
     const supabase = createClient();
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -236,21 +205,8 @@ export function Navbar() {
 
             {/* Desktop Navigation Links with 4 Broad Categories + Dropdowns */}
             <nav className="hidden lg:flex items-center space-x-5 xl:space-x-7">
-<<<<<<< HEAD
               {MAIN_NAV_ITEMS.map((item) => (
                 <div
-=======
-              {[
-                { label: "Shop", href: "/shop", hasDropdown: false },
-                ...navCategories.map((c) => ({
-                  label: c.label,
-                  href: c.href,
-                  hasDropdown: false,
-                })),
-                { label: "About", href: "/about", hasDropdown: false },
-              ].map((item) => (
-                <Link
->>>>>>> 7831bb0cf53aa95ee2ddfae316e653727c4774c4
                   key={item.label}
                   className="relative group"
                   onMouseEnter={() => item.hasDropdown && setActiveDropdown(item.label)}

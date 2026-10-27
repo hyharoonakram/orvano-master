@@ -34,7 +34,7 @@ export type OrderItem = {
   product: Product
 }
 
-import { normalizeProductData, isProductInCategory } from '../productCatalog';
+import { isProductMatchingFilter, parseCategoryParam } from '../categories';
 
 export function normalizeImageUrl(url: string | null | undefined): string {
   if (!url || typeof url !== 'string' || url.trim() === '') return '/images/watch.png';
@@ -43,7 +43,35 @@ export function normalizeImageUrl(url: string | null | undefined): string {
 
 export function normalizeProduct(product: any): Product {
   if (!product) return product;
-  return normalizeProductData(product) as Product;
+  const image_url = normalizeImageUrl(product.image_url);
+  let imgs: string[] = [];
+  if (Array.isArray(product.images)) {
+    imgs = product.images.map((img: string) => normalizeImageUrl(img));
+  } else if (typeof product.images === 'string') {
+    try {
+      const parsed = JSON.parse(product.images);
+      if (Array.isArray(parsed)) imgs = parsed.map((img: string) => normalizeImageUrl(img));
+      else imgs = [normalizeImageUrl(product.images)];
+    } catch {
+      imgs = [normalizeImageUrl(product.images)];
+    }
+  } else {
+    imgs = [image_url];
+  }
+
+  // If product is categorized in Men's Baggy in DB, ensure title accurately displays Men's
+  let name = product.name || '';
+  const cat = (product.category || '').toLowerCase();
+  if (cat.includes('men') && !cat.includes('women') && name.includes("Women's")) {
+    name = name.replace("Women's", "Men's");
+  }
+
+  return {
+    ...product,
+    name,
+    image_url,
+    images: imgs.length > 0 ? imgs : [image_url]
+  };
 }
 
 async function withTimeout<T>(promise: PromiseLike<T>, timeoutMs: number, fallback: T): Promise<T> {
@@ -75,7 +103,8 @@ export const getProducts = unstable_cache(
     if (!category || category === 'All') {
       return allNormalized;
     }
-    return allNormalized.filter((p: Product) => isProductInCategory(p, category));
+    const { broad, gender } = parseCategoryParam(category);
+    return allNormalized.filter((p: Product) => isProductMatchingFilter(p, broad, gender));
   },
   ['products-list-cache'],
   { revalidate: 10, tags: ['products'] }

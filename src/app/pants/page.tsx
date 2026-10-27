@@ -33,15 +33,11 @@ export default function PantsPage() {
         .order("created_at", { ascending: false });
         
       if (data) {
-<<<<<<< HEAD
-        // Strictly filter to broad category BOTTOM
-        const bottomList = data.filter((p: any) => isProductMatchingFilter(p, "BOTTOM", "ALL"));
+        // Strictly filter to broad category BOTTOM and normalize data
+        const bottomList = data
+          .map(normalizeProductData)
+          .filter((p: any) => isProductMatchingFilter(p, "BOTTOM", "ALL"));
         setProducts(bottomList);
-=======
-        const normalized = data.map(normalizeProductData);
-        const pantsList = normalized.filter((p: any) => isProductInCategory(p, "bottom"));
-        setProducts(pantsList);
->>>>>>> 7831bb0cf53aa95ee2ddfae316e653727c4774c4
       }
       setLoading(false);
     };
@@ -82,11 +78,7 @@ export default function PantsPage() {
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-<<<<<<< HEAD
             className="text-4xl sm:text-5xl md:text-6xl font-heading text-foreground mb-4 uppercase tracking-wider font-black"
-=======
-            className="text-4xl md:text-5xl font-heading text-foreground mb-4 uppercase tracking-wider font-extrabold"
->>>>>>> 7831bb0cf53aa95ee2ddfae316e653727c4774c4
           >
             Baggy Pants &amp; Jeans
           </motion.h1>
@@ -94,15 +86,9 @@ export default function PantsPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-<<<<<<< HEAD
             className="text-foreground/60 max-w-2xl mx-auto tracking-wide mb-6 text-sm sm:text-base"
           >
             Elevate your streetwear with our premium selection of oversized denim and relaxed baggy trousers for Men and Women.
-=======
-            className="text-foreground/60 max-w-2xl mx-auto tracking-wide mb-8 text-sm sm:text-base"
-          >
-            Elevate your streetwear with our premium collection of oversized, perfectly tailored baggy pants and jeans.
->>>>>>> 7831bb0cf53aa95ee2ddfae316e653727c4774c4
           </motion.p>
           <motion.div
             initial={{ opacity: 0 }}

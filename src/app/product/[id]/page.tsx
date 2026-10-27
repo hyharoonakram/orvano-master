@@ -56,14 +56,11 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   const viewers = 120 + (product.name.length % 50); // Dummy viewer count
 
   const getCategoryHref = (cat: string) => {
-<<<<<<< HEAD
     const normalized = (cat || "").toLowerCase().trim();
     if (normalized === "pants" || normalized.includes("baggy") || normalized.includes("bottom")) return "/pants";
     if (normalized.includes("watch")) return "/watches";
     if (normalized === "top" || normalized.includes("shirt")) return "/shop?category=TOP";
     if (normalized === "shoes" || normalized.includes("shoe")) return "/shop?category=SHOES";
-=======
->>>>>>> 7831bb0cf53aa95ee2ddfae316e653727c4774c4
     return `/shop?category=${encodeURIComponent(cat)}`;
   };
 

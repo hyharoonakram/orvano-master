@@ -36,16 +36,12 @@ export function ProductsClient({ initialProducts }: { initialProducts: any[] }) 
     display_order: "1"
   });
 
-<<<<<<< HEAD
   const broadCategories = ["All", "Top", "Bottom", "Watches", "Shoes"];
   const subCategories = [
     { id: "All", label: "All Genders" },
     { id: "MEN", label: "Men (Male)" },
     { id: "WOMEN", label: "Women (Female)" }
   ];
-=======
-  const categories = ["All", "Men's Watches", "Women's Watches", "Women's Clothing", "Men's Baggy Jeans"];
->>>>>>> 7831bb0cf53aa95ee2ddfae316e653727c4774c4
 
   const glowColorPresets = [
     { name: "Ocean Blue", color: "rgba(35, 95, 175, 0.55)", bg: "bg-blue-600" },
@@ -331,7 +327,6 @@ export function ProductsClient({ initialProducts }: { initialProducts: any[] }) 
                   onChange={e => setFormData({...formData, category: e.target.value})} 
                   className="w-full bg-[#050506] border border-white/10 focus:border-[#D4AF37] px-4 py-3 text-sm rounded-xl text-white outline-none transition-colors"
                 >
-<<<<<<< HEAD
                   <optgroup label="👖 BOTTOM (Baggy Pants & Jeans)">
                     <option value="Men's Baggy">Men's Baggy Pants / Jeans (Male)</option>
                     <option value="Women's Baggy">Women's Baggy Pants / Jeans (Female)</option>
@@ -340,8 +335,10 @@ export function ProductsClient({ initialProducts }: { initialProducts: any[] }) 
                     <option value="Men's Watches">Men's Watches (Male)</option>
                     <option value="Women's Watches">Women's Watches (Female)</option>
                   </optgroup>
-                  <optgroup label="👕 TOP (Shirts & Tees)">
-                    <option value="T-Shirts">Men's Tops / T-Shirts (Male)</option>
+                  <optgroup label="👕 TOP (Shirts, T-Shirts & Hoodies)">
+                    <option value="Top">Top (General)</option>
+                    <option value="Men's Top">Men's Top / T-Shirts (Male)</option>
+                    <option value="T-Shirts">T-Shirts</option>
                     <option value="Women's Top">Women's Tops (Female)</option>
                     <option value="Hoodies">Hoodies / Outerwear</option>
                   </optgroup>
@@ -352,12 +349,6 @@ export function ProductsClient({ initialProducts }: { initialProducts: any[] }) 
                   <optgroup label="✨ OTHER">
                     <option value="Accessories">Accessories</option>
                   </optgroup>
-=======
-                  <option value="Men's Watches">Men's Watches</option>
-                  <option value="Women's Watches">Women's Watches</option>
-                  <option value="Women's Clothing">Women's Clothing</option>
-                  <option value="Men's Baggy Jeans">Men's Baggy Jeans</option>
->>>>>>> 7831bb0cf53aa95ee2ddfae316e653727c4774c4
                 </select>
               </div>
               <div className="space-y-2">

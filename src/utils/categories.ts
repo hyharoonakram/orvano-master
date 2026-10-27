@@ -24,6 +24,8 @@ export const SUBCATEGORIES: { id: SubCategory; label: string }[] = [
 /**
  * Classifies any product into one of the 4 broad categories (TOP, BOTTOM, WATCHES, SHOES)
  * and subcategory (MEN or WOMEN).
+ *
+ * NOTE: The category assigned in Admin / Database ALWAYS takes HIGHEST PRIORITY!
  */
 export function classifyProduct(product: any): CategoryClassification {
   if (!product) {
@@ -42,6 +44,7 @@ export function classifyProduct(product: any): CategoryClassification {
   // 1. Determine Broad Category
   let broadCategory: BroadCategory = 'OTHER';
 
+  // Specific check for BOTTOM (Pants, Baggy, Jeans, Trousers, Cargo)
   const isBottom =
     cat.includes('bottom') ||
     cat.includes('pant') ||
@@ -49,15 +52,17 @@ export function classifyProduct(product: any): CategoryClassification {
     cat.includes('jean') ||
     cat.includes('cargo') ||
     cat.includes('trouser') ||
-    name.includes('pant') ||
-    name.includes('baggy') ||
-    name.includes('jean') ||
-    name.includes('cargo') ||
-    name.includes('wide-leg') ||
-    name.includes('trouser') ||
-    desc.includes('denim pants') ||
-    desc.includes('baggy jeans');
+    (!cat.includes('watch') && !cat.includes('top') && !cat.includes('shirt') && !cat.includes('shoe') &&
+      (name.includes('pant') ||
+        name.includes('baggy') ||
+        name.includes('jean') ||
+        name.includes('cargo') ||
+        name.includes('wide-leg') ||
+        name.includes('trouser') ||
+        desc.includes('denim pants') ||
+        desc.includes('baggy jeans')));
 
+  // Specific check for WATCHES (Rolex, Hublot, Patek, etc.)
   const isWatch =
     !isBottom &&
     (cat.includes('watch') ||
@@ -81,6 +86,7 @@ export function classifyProduct(product: any): CategoryClassification {
       name.includes('portive') ||
       name.includes('timepiece'));
 
+  // Specific check for TOP (T-Shirts, Shirts, Hoodies, Tops, Sweaters, Outerwear)
   const isTop =
     !isBottom &&
     !isWatch &&
@@ -90,12 +96,14 @@ export function classifyProduct(product: any): CategoryClassification {
       cat.includes('hoodie') ||
       cat.includes('sweater') ||
       cat.includes('jacket') ||
-      name.includes('shirt') ||
-      name.includes('tee') ||
       name.includes('t-shirt') ||
-      name.includes('top') ||
-      name.includes('hoodie'));
+      name.includes('tshirt') ||
+      name.includes('hoodie') ||
+      name.includes('sweater') ||
+      name.includes('jacket') ||
+      name.includes('shirt'));
 
+  // Specific check for SHOES (Sneakers, Shoes, Footwear, Boots, Loafers)
   const isShoes =
     !isBottom &&
     !isWatch &&
@@ -115,21 +123,23 @@ export function classifyProduct(product: any): CategoryClassification {
   else if (isShoes) broadCategory = 'SHOES';
 
   // 2. Determine Subcategory (Gender: MEN or WOMEN)
+  // HIGHEST PRIORITY: If admin set product.category to "Men's..." or "Women's...", that ALWAYS WINS!
   let gender: 'MEN' | 'WOMEN' = 'MEN';
-  const isFemale =
-    cat.includes('women') ||
-    cat.includes('female') ||
-    cat.includes('ladies') ||
-    name.includes('women') ||
-    name.includes('female') ||
-    name.includes('ladies') ||
-    name.includes(' duo women') ||
-    name.includes('bracelet watch for women');
 
-  if (isFemale) {
+  if (cat.includes('women') || cat.includes('female') || cat.includes('ladies')) {
     gender = 'WOMEN';
-  } else {
+  } else if (cat.includes('men') || cat.includes('male') || cat.includes('gents')) {
     gender = 'MEN';
+  } else {
+    // Only fallback to name if category is generic (e.g. "Watches", "Pants", "Top", "Shoes")
+    const isFemaleName =
+      name.includes('women') ||
+      name.includes('female') ||
+      name.includes('ladies') ||
+      name.includes('duo women') ||
+      name.includes('bracelet watch for women');
+
+    gender = isFemaleName ? 'WOMEN' : 'MEN';
   }
 
   const broadLabels: Record<BroadCategory, string> = {
@@ -165,12 +175,11 @@ export function isProductMatchingFilter(
       if (broadCategory !== 'WATCHES') return false;
     } else if (sBroad === 'BOTTOM' || sBroad === 'BOTTOMS' || sBroad === 'PANTS' || sBroad === 'BAGGY') {
       if (broadCategory !== 'BOTTOM') return false;
-    } else if (sBroad === 'TOP' || sBroad === 'TOPS' || sBroad === 'T-SHIRTS') {
+    } else if (sBroad === 'TOP' || sBroad === 'TOPS' || sBroad === 'T-SHIRTS' || sBroad === 'SHIRT' || sBroad === 'HOODIE') {
       if (broadCategory !== 'TOP') return false;
-    } else if (sBroad === 'SHOES' || sBroad === 'SHOE') {
+    } else if (sBroad === 'SHOES' || sBroad === 'SHOE' || sBroad === 'SNEAKERS') {
       if (broadCategory !== 'SHOES') return false;
     } else {
-      // Direct category string match fallback
       const catLower = (product.category || '').toLowerCase();
       if (!catLower.includes(selectedBroad.toLowerCase())) return false;
     }
@@ -190,7 +199,7 @@ export function isProductMatchingFilter(
 }
 
 /**
- * Normalizes legacy URL category parameters to broadCategory and gender.
+ * Normalizes category query parameters into broadCategory and gender.
  */
 export function parseCategoryParam(categoryParam: string | null): { broad: string; gender: string } {
   if (!categoryParam || categoryParam === 'All') {
@@ -209,8 +218,8 @@ export function parseCategoryParam(categoryParam: string | null): { broad: strin
     return { broad: 'WATCHES', gender: 'MEN' };
   }
 
-  // Women's Baggy / Women's Bottom / Women's Pants
-  if (p.includes('women') && (p.includes('baggy') || p.includes('pant') || p.includes('bottom') || p.includes('jean'))) {
+  // Women's Baggy / Women's Bottom / Women's Pants / Women's Clothing
+  if (p.includes('women') && (p.includes('baggy') || p.includes('pant') || p.includes('bottom') || p.includes('jean') || p.includes('clothing'))) {
     return { broad: 'BOTTOM', gender: 'WOMEN' };
   }
 
@@ -228,7 +237,7 @@ export function parseCategoryParam(categoryParam: string | null): { broad: strin
     return { broad: 'BOTTOM', gender: 'All' };
   }
 
-  if (p === 'top' || p === 'tops' || p === 't-shirts') {
+  if (p === 'top' || p === 'tops' || p === 't-shirts' || p === 't-shirt' || p === 'shirt' || p === 'hoodies') {
     return { broad: 'TOP', gender: 'All' };
   }
 
